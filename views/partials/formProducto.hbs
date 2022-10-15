@@ -1,1 +1,25 @@
-
+<!-- Formulario producto -->
+<div class="mb-3">
+  <h2> Bienvenido/a {{username}}</h2>
+  <p>Ingreso nro {{contador}}</p>
+   <p>Sesion expira en {{expira}}</p>
+     <a href="http://localhost:3000/logout" class="btn btn-info" role="button">Logout</a>
+<form action="javascript:agregarProducto()">
+    <div class="text-center mb-3">
+        <p>Ingrese los datos:</p>
+    <div class="form-outline mb-4">
+        <label for="title"><b>Nombre</b></label>
+        <input id="title" class="form-control" type="text" name="title">
+    </div>
+    <div class="form-outline mb-4">
+        <label for="price"><b>Precio</b></label>
+        <input id="price" class="form-control" type="text" name="price">
+    </div>
+    <div class="form-outline mb-4">
+        <label for="thumbnail"><b>Imagen</b></label>
+        <input id="thumbnail" class="form-control" type="text" name="thumbnail">
+    </div>
+    <button class="btn btn-success mt-3 mb-5" type="submit">Enviar</button>
+    </div>
+</form>
+</div>
