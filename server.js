@@ -7,12 +7,22 @@ import { engine } from 'express-handlebars';
 import * as path from 'path';
 import { fileURLToPath } from "url";
 import { createServer } from "http";
-import { Server } from "socket.io";
 
-const httpServer = createServer();
+/* import mongoose from 'mongoose';
+import { usuarioModel } from "./models/usuarios.model.js";
+import { config } from "./utils/configMongo.js";
+const strConn = config.atlas.strConn;
+ */
+//session persistencia mongo
+import connectMongo from 'connect-mongo';
+const MongoStore = connectMongo.create({
+    mongoUrl: process.env.MONGO_URL,
+    ttl: 60 
+})
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config();
-
 const app = express();
 
 /* BD */
@@ -49,6 +59,7 @@ app.set("views", path.resolve(__dirname, "./views"));
 
 /* ---------------------- Middlewares ---------------------- */
 app.use(session({
+  store:MongoStore,
   secret: process.env.SECRET_KEY,
   resave: true,
   saveUninitialized: true,
@@ -60,7 +71,7 @@ app.use(session({
 }));
 
 function auth(req, res, next) {
-  if(req.session?.user === 'coder' && req.session?.admin){
+  if(req.session?.user && req.session?.admin){
     return next()
   }
 
@@ -89,14 +100,26 @@ app.get('/con-session', (req, res)=>{
   }
 })
 let usuario="";
+async function conecto(username,password){
+  try {
+    await mongoose.connect(strConn);
+    const retorna= await usuarioModel.find( {$elemMatch: { user: username, password: { $gt: password } }} );
+    return retorna
+  } catch (error) {
+    console.log(error)
+} finally {
+    await mongoose.disconnect()
+}
+}
+
 app.get('/login', (req, res)=>{
       const {username, password } = req.query;
       console.log(username);
-      if(username !== 'coder' || password !== 'house'){
+      const esusuario= conecto(username,password);
+      if(esusuario==''){
         return res.send('Login failed!');
       }
       req.session.user = username;
-      usuario=username;
       req.session.admin = true;
       if (!req.session.contador) {
         req.session.contador = 1
@@ -108,8 +131,7 @@ app.get('/login', (req, res)=>{
 
       console.log('session: ',req.session);
     
-     
-   
+      
       res.render("logout",{
         username: usuario
       });
